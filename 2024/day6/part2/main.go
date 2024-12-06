@@ -13,6 +13,13 @@ type Pos struct {
 	y int
 }
 
+const (
+	NORTH = iota
+	EAST
+	SOUTH
+	WEST
+)
+
 func main() {
 	origTable := parseInput()
 	traversedPath := getTraversedPath()
@@ -21,6 +28,7 @@ func main() {
 
 	for _, pos := range traversedPath {
 		guardOnMap := true
+		table := parseInput()
 
 		beenThereDoneThat := make([][][4]int, len(origTable))
 		for i := range origTable {
@@ -32,66 +40,66 @@ func main() {
 				beenThereDoneThat[i][j][3] = 0
 			}
 		}
-		table := parseInput()
 		if !slices.Contains(guardChars, origTable[pos.x][pos.y]) && origTable[pos.x][pos.y] != '#' {
 			table[pos.x][pos.y] = '#'
 		} else {
 			continue
 		}
+
 		for guardOnMap {
 			for i, rows := range table {
 				for j := range rows {
-					guardFace := slices.Index(guardChars, table[i][j])
-					if guardFace != -1 {
-						if beenThereDoneThat[i][j][guardFace] > 0 {
+					guardDirection := slices.Index(guardChars, table[i][j])
+					if guardDirection != -1 {
+						if beenThereDoneThat[i][j][guardDirection] > 0 {
 							infinite += 1
 							guardOnMap = false
 							break
 						}
-						switch guardFace {
-						case 0:
+						switch guardDirection {
+						case NORTH:
 							if i == 0 {
 								guardOnMap = false
 								break
 							}
 							if table[i-1][j] != '#' {
 								table[i-1][j] = guardChars[0]
-								beenThereDoneThat[i][j][guardFace] = 1
+								beenThereDoneThat[i][j][guardDirection] = 1
 							} else {
 								table[i][j] = guardChars[1]
 							}
-						case 1:
+						case EAST:
 							if j == len(table[i])-1 {
 								guardOnMap = false
 								break
 							}
 							if table[i][j+1] != '#' {
 								table[i][j+1] = guardChars[1]
-								beenThereDoneThat[i][j][guardFace] = 1
+								beenThereDoneThat[i][j][guardDirection] = 1
 							} else {
-								table[i][j] = guardChars[2]
+								table[i][j] = guardChars[SOUTH]
 							}
-						case 2:
+						case SOUTH:
 							if i == len(table)-1 {
 								guardOnMap = false
 								break
 							}
 							if table[i+1][j] != '#' {
 								table[i+1][j] = guardChars[2]
-								beenThereDoneThat[i][j][guardFace] = 1
+								beenThereDoneThat[i][j][guardDirection] = 1
 							} else {
-								table[i][j] = guardChars[3]
+								table[i][j] = guardChars[WEST]
 							}
-						case 3:
+						case WEST:
 							if j == 0 {
 								guardOnMap = false
 								break
 							}
 							if table[i][j-1] != '#' {
 								table[i][j-1] = guardChars[3]
-								beenThereDoneThat[i][j][guardFace] = 1
+								beenThereDoneThat[i][j][guardDirection] = 1
 							} else {
-								table[i][j] = guardChars[0]
+								table[i][j] = guardChars[NORTH]
 							}
 						}
 					}
@@ -104,7 +112,7 @@ func main() {
 }
 
 func parseInput() [][]rune {
-	content, err := os.ReadFile("../input.txt")
+	content, err := os.ReadFile("../test.txt")
 	if err != nil {
 	}
 	lines := strings.Split(string(content), "\n")
