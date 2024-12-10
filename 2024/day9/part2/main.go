@@ -30,7 +30,6 @@ func main() {
 			total += (i * num)
 		}
 	}
-	fmt.Println(origArray)
 	fmt.Println(total)
 }
 
@@ -42,31 +41,32 @@ func getPart(origArray []int) []int {
 			j -= 1
 			continue
 		}
-		for j != -1 && origArray[j] == idCounter {
+		currj := j
+
+		for currj != -1 && origArray[currj] == idCounter {
 			numOfThingsToMove += 1
-			j -= 1
+			currj -= 1
 		}
-		fmt.Println(origArray[j+1])
-		origArray = findFirstFreeBlockSpaceId(origArray, numOfThingsToMove, j+1)
+		origArray = findFirstFreeBlockSpaceId(origArray, numOfThingsToMove, currj+1)
+		j = currj
 	}
 
 	return origArray
 }
 
 func findFirstFreeBlockSpaceId(origArray []int, numOfThingsToMove int, idx int) []int {
-	for i := 0; i < len(origArray)-numOfThingsToMove; i++ {
+	for i := 0; i < idx; i++ {
 		if origArray[i] == -1 {
 			fits := true
 			for j := 0; j < numOfThingsToMove; j++ {
-				// fmt.Println(numOfThingsToMove, i, j, idx)
 				if origArray[i+j] != -1 {
 					fits = false
 				}
 			}
 			if fits {
+				elToInsert := origArray[idx]
 				for j := 0; j < numOfThingsToMove; j++ {
-					// fmt.Println(origArray)
-					origArray[i+j] = origArray[idx]
+					origArray[i+j] = elToInsert
 					origArray[idx+j] = -1
 				}
 			}
@@ -76,7 +76,7 @@ func findFirstFreeBlockSpaceId(origArray []int, numOfThingsToMove int, idx int) 
 }
 
 func parseInput() string {
-	byteContent, err := os.ReadFile("test.txt")
+	byteContent, err := os.ReadFile("../input.txt")
 	if err != nil {
 	}
 	content := string(byteContent)
