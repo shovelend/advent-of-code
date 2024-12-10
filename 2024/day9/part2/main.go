@@ -4,63 +4,81 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 )
 
-type Combine struct {
-	target  int64
-	numbers []int64
-}
-
 func main() {
-	table := parseInput()
-	total := int64(0)
-	for _, combine := range table {
-		if equals(combine, 0) {
-			total += (combine.target)
+	diskMap := parseInput()
+	origArray := []int{}
+	for i, elem := range diskMap {
+		element, _ := strconv.Atoi(string(elem))
+		switch i % 2 {
+		case 0:
+			for j := 0; j < element; j++ {
+				origArray = append(origArray, i/2)
+			}
+		case 1:
+			for j := 0; j < element; j++ {
+				origArray = append(origArray, -1)
+			}
 		}
 	}
+
+	total := 0
+	origArray = getPart(origArray)
+	for i, num := range origArray {
+		if num != -1 {
+			total += (i * num)
+		}
+	}
+	fmt.Println(origArray)
 	fmt.Println(total)
 }
 
-func equals(c Combine, total int64) bool {
-	if total > c.target {
-		return false
+func getPart(origArray []int) []int {
+	for j := len(origArray) - 1; j > 0; {
+		idCounter := origArray[j]
+		numOfThingsToMove := 0
+		if origArray[j] == -1 {
+			j -= 1
+			continue
+		}
+		for j != -1 && origArray[j] == idCounter {
+			numOfThingsToMove += 1
+			j -= 1
+		}
+		fmt.Println(origArray[j+1])
+		origArray = findFirstFreeBlockSpaceId(origArray, numOfThingsToMove, j+1)
 	}
-	if len(c.numbers) == 0 {
-		return total == c.target
-	}
-	currHead := c.numbers[0]
-	c = Combine{target: c.target, numbers: c.numbers[1:len(c.numbers)]}
-	appended := strings.Join([]string{strconv.FormatInt(total, 10), strconv.FormatInt(currHead, 10)}, "")
-	intAppended, _ := strconv.Atoi(appended)
-	return equals(c, total+currHead) || equals(c, total*currHead) || equals(c, int64(intAppended))
+
+	return origArray
 }
 
-func parseInput() []Combine {
-	content, err := os.ReadFile("../input.txt")
+func findFirstFreeBlockSpaceId(origArray []int, numOfThingsToMove int, idx int) []int {
+	for i := 0; i < len(origArray)-numOfThingsToMove; i++ {
+		if origArray[i] == -1 {
+			fits := true
+			for j := 0; j < numOfThingsToMove; j++ {
+				// fmt.Println(numOfThingsToMove, i, j, idx)
+				if origArray[i+j] != -1 {
+					fits = false
+				}
+			}
+			if fits {
+				for j := 0; j < numOfThingsToMove; j++ {
+					// fmt.Println(origArray)
+					origArray[i+j] = origArray[idx]
+					origArray[idx+j] = -1
+				}
+			}
+		}
+	}
+	return origArray
+}
+
+func parseInput() string {
+	byteContent, err := os.ReadFile("test.txt")
 	if err != nil {
 	}
-	lines := strings.Split(string(content), "\n")
-
-	table := make([]Combine, len(lines))
-	for i, line := range lines {
-		splintered := strings.Split(line, ":")
-		nums := parseNums(splintered[1])
-		res, _ := strconv.Atoi(splintered[0])
-		table[i] = Combine{target: int64(res), numbers: nums}
-	}
-	return table
-}
-
-func parseNums(nums string) []int64 {
-
-	strs := strings.Split(nums, " ")
-	ary := make([]int64, len(strs))
-	for i := range ary {
-		res, _ := strconv.Atoi(strs[i])
-		ary[i] = int64(res)
-	}
-
-	return ary
+	content := string(byteContent)
+	return content
 }
